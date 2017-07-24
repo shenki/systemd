@@ -77,13 +77,21 @@ static int update_timeout(void) {
         return 0;
 }
 
-static int open_watchdog(void) {
+static int open_watchdog(int wd_number) {
         struct watchdog_info ident;
+        char *watchdog_file;
 
         if (watchdog_fd >= 0)
                 return 0;
 
-        watchdog_fd = open("/dev/watchdog", O_WRONLY|O_CLOEXEC);
+        if (wd_number < 0)
+                wd_number = 0;
+
+        if (asprintf(&watchdog_file, "/dev/watchdog%d", wd_number) < 0)
+                return -errno;
+
+        watchdog_fd = open(watchdog_file, O_WRONLY|O_CLOEXEC);
+	free(watchdog_file);
         if (watchdog_fd < 0)
                 return -errno;
 
@@ -106,7 +114,7 @@ int watchdog_set_timeout(usec_t *usec) {
                 return 0;
 
         if (watchdog_fd < 0)
-                r = open_watchdog();
+                r = open_watchdog(0);
         else
                 r = update_timeout();
 
@@ -119,7 +127,7 @@ int watchdog_ping(void) {
         int r;
 
         if (watchdog_fd < 0) {
-                r = open_watchdog();
+                r = open_watchdog(0);
                 if (r < 0)
                         return r;
         }
