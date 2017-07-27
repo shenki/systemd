@@ -156,6 +156,7 @@ struct Manager {
 
         usec_t runtime_watchdog;
         usec_t shutdown_watchdog;
+        int watchdog_device;
 
         dual_timestamp firmware_timestamp;
         dual_timestamp loader_timestamp;
